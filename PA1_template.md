@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ## Introduction
 
@@ -15,7 +10,8 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 Let's first load the data.
 
-```{r}
+
+```r
 data <- read.csv (unz ('repdata_data_activity.zip', 'activity.csv'))
 data$date <- as.Date (data$date)
 ```
@@ -24,37 +20,60 @@ data$date <- as.Date (data$date)
 
 We now calculate the total steps by day and show a histogram. Although we call it a histogram, it is actually a bar graph.
 
-```{r}
+
+```r
 steps.by.day <- tapply (data$steps, data$date, FUN=sum, na.rm = TRUE)
 barplot (steps.by.day, main = 'Total number of steps by date', ylab = 'Steps')
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
 Next we will calculate the mean and median value of the total number of steps by date:
 
-```{r}
+
+```r
 mean (steps.by.day)
+```
+
+```
+## [1] 9354.23
+```
+
+```r
 median (steps.by.day)
+```
+
+```
+## [1] 10395
 ```
 
 ## What is the average daily activity pattern?
 
 We will first make a time series plot (i.e. type = "l") of the 5-minute interval and the average number of steps taken, averaged across all days.
 
-```{r}
+
+```r
 steps.by.period = tapply (data$steps, data$interval, FUN = mean, na.rm = TRUE)
 #number.days = length (unique (data$date))
 #steps.by.period = steps.by.period / number.days
 plot (names (steps.by.period), steps.by.period, type='l', main = 'Average number of steps by interval', xlab = 'Interval', ylab = 'Average number of steps')
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
 We can now find out Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
 
 The following code find out the interval, in the format of "hhmm", with the leading zero in the hour omitted (if applicable):
 
-```{r}
+
+```r
 m <- max (steps.by.period)
 the_interval <- steps.by.period [steps.by.period == m]
 names (the_interval)
+```
+
+```
+## [1] "835"
 ```
 
 ## Imputing missing values
@@ -63,13 +82,19 @@ We note that there are a number of days/intervals where there are missing values
 
 WE first calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r}
+
+```r
 sum (is.na (data$steps))
+```
+
+```
+## [1] 2304
 ```
 
 As can be seen, there are a lot of NA in the dataset. These NA will have an impact in out calculation. We therefore must devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. Here we will use the mean for that 5-minute interval.
 
-```{r}
+
+```r
 bad <- is.na (data$steps)
 good.data <- data [!bad,]
 bad.data <- data [bad,]
@@ -84,11 +109,28 @@ imputted.data <- rbind (good.data, bad.data)
     
 We now repeat step 1 to make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.
 
-```{r}
+
+```r
 steps.by.day <- tapply (imputted.data$steps, imputted.data$date, FUN=sum, na.rm = TRUE)
 barplot (steps.by.day, main = 'Total number of steps by date', ylab = 'Steps')
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
+```r
 mean (steps.by.day)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median (steps.by.day)
+```
+
+```
+## [1] 10766.19
 ```
 
 As can be seen, the mean increases by this imputting action, but the median seems not affected.
@@ -99,7 +141,8 @@ Finally, we want to find out if there are differences in activity patters betwee
 
 We first create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
-```{r}
+
+```r
 weekday <- weekdays (data$date)
 weekend <- weekday == 'Saturday' | weekday == 'Sunday'
 data$dateType [weekend] <- 'weekend'
@@ -109,7 +152,8 @@ data$dateType <- as.factor (data$dateType)
 
 We now make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
-```{r}
+
+```r
 # we first collect data into another data frame
 data$newIndex <- paste(data$dateType, data$interval)
 data.average <- tapply (data$step, data$newIndex, mean, na.rm = TRUE)
@@ -117,7 +161,16 @@ data.average <- data.frame (steps = data.average, interval = as.numeric (substri
 data.average <- data.average [order (data.average$interval), ]
 # we are using the lattice plotting facility
 require (lattice)
+```
+
+```
+## Loading required package: lattice
+```
+
+```r
 xyplot (steps ~ interval | dateType, data = data.average, layout = c (1, 2), type = 'l', xlab = 'Interval', ylab = 'Number of Steps')
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
 
 From the charts above, it clearly shows that the activity patterns are different between weekdays and weekends.
